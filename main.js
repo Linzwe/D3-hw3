@@ -74,6 +74,7 @@ d3.csv("players.csv").then(RawData =>
         .attr('class', 'd3-tip')
         .html(NewData=>(NewData.teamID + "<br>" +  NewData.name + "<br>"+ "Salary: " + NewData.salary));
 //bursh
+    var gender = [0,0];
     var brush = d3.brush()
         .extent([[0, 0], [scatterWidth, scatterHeight]])
         .on("start", brushed)
@@ -90,6 +91,9 @@ d3.csv("players.csv").then(RawData =>
                     scatterx(d.H_AB) <= extent[1][0] &&
                     scattery(d.SO_AB) >= extent[0][1] &&
                     scattery(d.SO_AB) <= extent[1][1];
+
+                
+            
 
         });
 
@@ -220,7 +224,7 @@ d3.csv("players.csv").then(RawData =>
           .attr("cx", function (d) { return scatterx(d.H_AB); } )
           .attr("cy", function (d) { return scattery(d.SO_AB); } )
           .attr("r", 1.5)
-          .style("fill", "#69b3a2")
+          .attr("fill", "#69b3a2")
 
     circles.on('mouseover',tip.show)
             .on('mouseout',tip.hide);
