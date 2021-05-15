@@ -22,6 +22,15 @@ d3.csv("players.csv").then(RawData =>
     console.log("NewData", NewData);
     
     let num_player = {};
+    let nf;
+    let disf;
+    let brshxd;
+    var a = d3.nest()
+          .key(function(d){return d.teamID;})
+          .rollup(function(d){return d.length;})
+          .entries(NewData);
+
+
     let team = NewData.map(data=>
     {
         return[data.teamID];
@@ -43,11 +52,22 @@ d3.csv("players.csv").then(RawData =>
     console.log("number of player",num_player);
 
     let final =[]
+    let zf =[];
+
     for(var i = 0; i < 30; i++)
     {
         final.push({teamID:Object.keys(num_player)[i],number_player:num_player[Object.keys(num_player)[i]]})
     }
-    console.log("final",final);
+
+    for(var i = 0; i < 30; i++)
+    {
+        zf.push({key:Object.keys(num_player)[i],value : 0})
+    }
+    console.log("final",zf);
+
+
+
+
 
     const svg = d3.select("#chart-area").append("svg")
         .attr("width", teamWidth + teamMargin.left + teamMargin.right)
@@ -81,26 +101,61 @@ d3.csv("players.csv").then(RawData =>
         .on("brush", brushed)
         .on("end", endbrushed);    
     
-    console.log(scatterWidth)
+
     function brushed(){
         var extent = d3.event.selection;
+        var brshdata =[];
 
         circles
             .classed("selected", function(d) { 
-                return scatterx(d.H_AB) >= extent[0][0] &&
+                select = scatterx(d.H_AB) >= extent[0][0] &&
                     scatterx(d.H_AB) <= extent[1][0] &&
                     scattery(d.SO_AB) >= extent[0][1] &&
                     scattery(d.SO_AB) <= extent[1][1];
-
                 
-            
-
+                if (select) 
+                {
+                    brshdata.push(d);
+                }
+                
+                return select;
         });
-
-
+         disf = brshdata;
+         nf = d3.nest()
+          .key(function(d){return d.teamID;})
+          .rollup(function(d){return d.length;})
+          .entries(brshdata);
+   
 
     }
-    
+    function endbrushed() {
+        
+        newrects.data(zf)
+        .attr("y",d=>y(d.value))
+        .attr("x",(d)=>x(d.key))
+        .attr("width", x.bandwidth)
+        .attr("height",d => teamHeight - y(d.value))
+        .attr("fill", "LightSteelBlue")
+
+         newrects.data(nf)
+        .attr("y",d=>y(d.value))
+        .attr("x",(d)=>x(d.key))
+        .attr("width", x.bandwidth)
+        .attr("height",d => teamHeight - y(d.value))
+        .attr("fill", "LightSteelBlue")
+
+        var newbins = histogram(disf);
+        console.log("nelwaknean",newbins)
+        disselect.datum(newbins)
+        .attr("fill","black")
+        .attr("stroke", "steelblack")
+        .attr("stroke-width", 1.5)
+        .attr("d",d3.area().curve(d3.curveMonotoneX)
+            .x(function(d){return distrx(d.x0)})
+            .y0(distrHeight)
+            .y1(function(d){return distry(d.length)})
+        )
+    }
     
  
     
@@ -146,12 +201,25 @@ d3.csv("players.csv").then(RawData =>
     
     var bins = histogram(NewData);
     
-    console.log(bins)
+
+
     let disdata = bins.map(data=>{
         return{xpoint: data.x0, ypoint: data.length}
     });
     
-    distribution.append("path")
+
+
+    diso = distribution.append('g').append("path")
+        .datum(bins)
+        .attr("fill","#87cefa")
+        .attr("stroke", "steelblue")
+        .attr("stroke-width", 1.5)
+        .attr("d",d3.area().curve(d3.curveMonotoneX)
+            .x(function(d){return distrx(d.x0)})
+            .y0(distrHeight)
+            .y1(function(d){return distry(d.length)})
+        )
+    var disselect = distribution.append('g').append("path")
         .datum(bins)
         .attr("fill","#87cefa")
         .attr("stroke", "steelblue")
@@ -169,11 +237,33 @@ d3.csv("players.csv").then(RawData =>
                 .extent([[490,0],[900,distrHeight]])
                 .on("start",brushedx)
                 .on("brush", brushedx)
+                .on("end", endxbrushed)
 
                 );
 
+
+
     function brushedx(){
-        //var extent = d3.event.selection;
+        var extent = d3.event.selection;
+        
+        console.log(extent[0])
+        //console.log(extent[1])
+        
+        circles
+            .classed("selectedx", function(d) { 
+                //selectx;
+                //console.log("d",d)
+                selectx = (extent[0]-490)*85365.8537 <= d.salary &&
+                           d.salary <= (extent[1]-490)*85365.8537;
+                
+                
+                return selectx;
+        });
+
+      
+
+    }
+    function endxbrushed(){
 
     }
 
@@ -232,9 +322,7 @@ d3.csv("players.csv").then(RawData =>
     circleG.call(tip);
     brushcircle.call(brush);
     
-    function endbrushed() {
-     
-    }
+    
 
             
 //bar chart
@@ -278,15 +366,26 @@ d3.csv("players.csv").then(RawData =>
     const yAxiasCall = d3.axisLeft(y)
     barChart.append("g").call(yAxiasCall)
 
+    console.log("sdsd",a);
 
-    const rects = barChart.selectAll("react").data(final)
-
-    rects.enter().append("rect")
-        .attr("y",d=>y(d.number_player))
-        .attr("x",(d)=>x(d.teamID))
+    var newrects = barChart.selectAll("react").data(zf)
+        .enter().append("rect")
+        .attr("y",d=>y(d.value))
+        .attr("x",(d)=>x(d.key))
         .attr("width", x.bandwidth)
-        .attr("height",d => teamHeight - y(d.number_player))
+        .attr("height",d => teamHeight - y(d.value))
         .attr("fill", "LightSteelBlue")
+
+    const rects = barChart.selectAll("react").data(a)
+        .enter().append("rect")
+        .attr("y",d=>y(d.value))
+        .attr("x",(d)=>x(d.key))
+        .attr("width", x.bandwidth)
+        .attr("height",d => teamHeight - y(d.value))
+        .attr("stroke" , "black")
+        .attr("fill", "none")
+    
+        
     
 }).catch(function(error){
     console.log(error);
