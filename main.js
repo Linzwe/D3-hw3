@@ -131,29 +131,33 @@ d3.csv("players.csv").then(RawData =>
     function endbrushed() {
         
         newrects.data(zf)
-        .attr("y",d=>y(d.value))
-        .attr("x",(d)=>x(d.key))
-        .attr("width", x.bandwidth)
-        .attr("height",d => teamHeight - y(d.value))
-        .attr("fill", "LightSteelBlue")
+            
+            .attr("y",d=>y(d.value))
+            .attr("x",(d)=>x(d.key))
+            .attr("width", x.bandwidth)
+            .attr("height",d => teamHeight - y(d.value))
+            .attr("fill", "LightSteelBlue")
 
          newrects.data(nf)
-        .attr("y",d=>y(d.value))
-        .attr("x",(d)=>x(d.key))
-        .attr("width", x.bandwidth)
-        .attr("height",d => teamHeight - y(d.value))
-        .attr("fill", "LightSteelBlue")
+            
+            .attr("y",d=>y(d.value))
+            .attr("x",(d)=>x(d.key))
+            .attr("width", x.bandwidth)
+            .attr("height",d => teamHeight - y(d.value))
+            .attr("fill", "LightSteelBlue")
 
         var newbins = histogram(disf);
         console.log("nelwaknean",newbins)
         disselect.datum(newbins)
-        .attr("fill","black")
-        .attr("stroke", "steelblack")
-        .attr("stroke-width", 1.5)
-        .attr("d",d3.area().curve(d3.curveMonotoneX)
-            .x(function(d){return distrx(d.x0)})
-            .y0(distrHeight)
-            .y1(function(d){return distry(d.length)})
+            .transition()
+            .duration(1000)
+            .attr("fill","black")
+            .attr("stroke", "steelblack")
+            .attr("stroke-width", 1.5)
+            .attr("d",d3.area().curve(d3.curveMonotoneX)
+                .x(function(d){return distrx(d.x0)})
+                .y0(distrHeight)
+                .y1(function(d){return distry(d.length)})
         )
     }
     
